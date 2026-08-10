@@ -1,0 +1,55 @@
+{
+  "$comment": "SQLite schema for the PM Kanban app. See DATABASE.md for rationale.",
+  "tables": {
+    "users": {
+      "description": "Single hardcoded user for the MVP; table exists so boards have a real FK owner and the schema supports multiple users later.",
+      "columns": {
+        "id": { "type": "INTEGER", "primaryKey": true, "autoincrement": true },
+        "username": { "type": "TEXT", "notNull": true, "unique": true },
+        "password": { "type": "TEXT", "notNull": true }
+      },
+      "seed": [{ "username": "user", "password": "password" }]
+    },
+    "boards": {
+      "description": "One board per user (MVP constraint enforced via UNIQUE on user_id).",
+      "columns": {
+        "id": { "type": "INTEGER", "primaryKey": true, "autoincrement": true },
+        "user_id": {
+          "type": "INTEGER",
+          "notNull": true,
+          "unique": true,
+          "references": { "table": "users", "column": "id", "onDelete": "CASCADE" }
+        }
+      }
+    },
+    "columns": {
+      "description": "Kanban columns. `id` matches the frontend's string Column.id (e.g. 'col-backlog'). `position` gives display order within a board.",
+      "columns": {
+        "id": { "type": "TEXT", "primaryKey": true },
+        "board_id": {
+          "type": "INTEGER",
+          "notNull": true,
+          "references": { "table": "boards", "column": "id", "onDelete": "CASCADE" }
+        },
+        "title": { "type": "TEXT", "notNull": true },
+        "position": { "type": "INTEGER", "notNull": true }
+      },
+      "indexes": [{ "columns": ["board_id", "position"] }]
+    },
+    "cards": {
+      "description": "Kanban cards. `id` matches the frontend's string Card.id (e.g. 'card-1'). `position` gives display order within a column.",
+      "columns": {
+        "id": { "type": "TEXT", "primaryKey": true },
+        "column_id": {
+          "type": "TEXT",
+          "notNull": true,
+          "references": { "table": "columns", "column": "id", "onDelete": "CASCADE" }
+        },
+        "title": { "type": "TEXT", "notNull": true },
+        "details": { "type": "TEXT", "notNull": true, "default": "" },
+        "position": { "type": "INTEGER", "notNull": true }
+      },
+      "indexes": [{ "columns": ["column_id", "position"] }]
+    }
+  }
+}
